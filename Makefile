@@ -1,6 +1,5 @@
 build:
 	bash scripts/build.sh
-	bash scripts/test.sh
 
 test:
 	bash scripts/test.sh
