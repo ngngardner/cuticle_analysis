@@ -26,9 +26,10 @@ class Textbox():
         self.is_running = True
         self.shape_object = pygame.Rect(self.position[0], self.position[1], int(list(size.values())[list(
             size.keys()).index("width")]), int(list(size.values())[list(size.keys()).index("height")]))
+        self.keyboard_events = [pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9]
 
     def __show__(self):
-        # Sets textbox visible
+        "Sets textbox visible"
         pygame.draw.rect(
             self.surface, const.TEXTBOX_BKG_COLOR, self.shape_object)
         if self.value is None:
@@ -41,3 +42,18 @@ class Textbox():
                 self.value, True, self.text_color)
         self.surface.blit(self.text_object, (self.position[0], (self.position[1] + int(
             list(self.size.values())[list(self.size.keys()).index("height")]/3))))
+
+    def __to_int__(self, KEY_EVENT, max_events):
+        if max_events > 0:
+            if KEY_EVENT == self.keyboard_events[max_events]:
+                return max_events
+            else:
+                self.__to_int__(self, KEY_EVENT, max_events - 1)
+        return None
+
+    def __update_value__(self, KEY_EVENT):
+            try:
+                new_value = self.__to_int__(KEY_EVENT, 10)
+                self.value = self.value * 10 + new_value
+            except Exception as e:
+                self.value = None

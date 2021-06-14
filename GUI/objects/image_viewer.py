@@ -82,7 +82,8 @@ class ImageViewer():
             Post-condition: Ant image is shown in image viewer. If file not found,
             The cache image is deleted and the image viewer shows error.
         """
-        if id >= 1 and id <= 1773:
+        #IMPLEMENT FUNCTION THAT OBTAINS THE MAXIMUM IMAGE ID.
+        if id >= 1 and id <= 2876:
             self.id = id
             try:
                 self.image_arr = im.fromarray(
@@ -90,7 +91,6 @@ class ImageViewer():
                 self.image_arr.save(self.cache_path)
                 return 1
             except Exception as e:
-                print(e)
                 self.image_arr = None
                 self.__delete_img_cache__()
                 return -1
@@ -98,5 +98,9 @@ class ImageViewer():
 
     def __delete_img_cache__(self):
         "Deletes the image cache file upon program exit."
-        os.remove(self.cache_path)
+        try:
+            if os.path.exists(self.cache_path) is True:
+                os.remove(self.cache_path)
+        except Exception as e:
+            print("Cache deleted.")
         self.image = None

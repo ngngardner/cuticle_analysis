@@ -1,7 +1,8 @@
 
 import threading
-
 import pygame
+import os
+
 from pygame.locals import HIDDEN, DOUBLEBUF
 
 from cuticle_analysis.dataset import Dataset
@@ -100,6 +101,16 @@ def start():
             if event.type == pygame.QUIT:
                 is_running = False
                 previous_button.set_running_status(is_running)
+                ant_iv.__delete_img_cache__()
+                os._exit(1)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_KP_ENTER:
+                    print("Clear and search")
+                else:
+                    if event.key == pygame.K_BACKSPACE:
+                        print("Backspace")
+                    else:
+                        id_textbox.__update_value__(event.key)
         if ant_iv.__get_increment_flag__() == True:
             if __image_id__ < 1773:
                 __image_id__ += 1
@@ -117,9 +128,7 @@ def start():
         ant_iv.__set_increment_flag__(False)
         ant_iv.__set_decrement_flag__(False)
         pygame.display.update()
-    next_bttn_listener.join()
-    prev_bttn_listener.join()
-
+    
 
 # Temporary check verifying that the window staus is open until user quits.
 gui_thread = threading.Thread(target=start)
