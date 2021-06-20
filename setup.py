@@ -9,7 +9,7 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='cuticle',
+    name='cuticle_analysis',
     version='0.0.1',
     description='Project for analyzing ant head images.',
     long_description=readme,
@@ -17,5 +17,9 @@ setup(
     author_email='ngardn10@students.kennesaw.edu',
     url='https://github.com/ngngardner/cuticle_analysis',
     license=license,
-    packages=find_packages(".", exclude=["test", "dataset"])
+    packages=["cuticle_analysis", "cuticle_analysis/core"],
+    entry_points='''
+        [console_scripts]
+        cuticle_analysis=cuticle_analysis:main
+    '''
 )

@@ -142,7 +142,7 @@ cuticle_analysis.egg-info
 .env
 .snakemake
 *.zip
-!dataset.zip
+.envrc
 
 # generated
 logs
@@ -150,6 +150,7 @@ test.jpg
 *.test.jpg
 output
 *iv_cache.jpg
+result
 
 # Data folders/files
 Data
