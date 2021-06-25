@@ -9,8 +9,6 @@ rec {
     src = builtins.fetchGit ./.;
 
     propagatedBuildInputs = with pkgs.python39Packages; [
-      pkgs.labelme
-
       click
       gdown
       matplotlib
@@ -18,6 +16,7 @@ rec {
       opencv3
       openpyxl
       pandas
+      pillow
       pygame
       rich
       scikit-learn

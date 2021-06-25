@@ -1,16 +1,4 @@
 {
-    "labelme": {
-        "branch": "master",
-        "description": "Image Polygonal Annotation with Python (polygon, rectangle, circle, line, point and image-level flag annotation).",
-        "homepage": "",
-        "owner": "wkentaro",
-        "repo": "labelme",
-        "rev": "66d007fab8cac83932a8cf9d91077e707af8c05f",
-        "sha256": "1id6yirnyaamgmzfl0jrxpc489337sgn5lb287l3hdvncg5m91a6",
-        "type": "tarball",
-        "url": "https://github.com/wkentaro/labelme/archive/66d007fab8cac83932a8cf9d91077e707af8c05f.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "niv": {
         "branch": "master",
         "description": "Easy dependency management for Nix projects",

@@ -9,10 +9,10 @@ from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 import cv2
-from labelme import utils
 from numpy.random import default_rng
 
 from . import const
+from .utils import shapes_to_label
 
 if not os.path.exists('./logs'):
     os.makedirs('./logs')
@@ -52,7 +52,7 @@ def get_label_names(img: np.ndarray, data: Dict) -> Tuple[np.ndarray, Dict]:
         else:
             label_value = len(label_name_to_value)
             label_name_to_value[label_name] = label_value
-    lbl, _ = utils.shapes_to_label(
+    lbl, _ = shapes_to_label(
         img.shape, data["shapes"], label_name_to_value
     )
 
