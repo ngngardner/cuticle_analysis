@@ -1,14 +1,29 @@
 { sources ? import ./nix/sources.nix
 , pkgs ? import ./nix { inherit sources; }
 }:
+with pkgs;
 rec {
-  cuticle = pkgs.python39Packages.buildPythonPackage {
+  cuticle = python39Packages.buildPythonPackage {
     pname = "cuticle_analysis";
     version = "0.0.1";
 
-    src = builtins.fetchGit ./.;
+    src = lib.cleanSourceWith {
+      filter = (path: type:
+        ! (builtins.any
+            (r: (builtins.match r (builtins.baseNameOf path)) != null)
+            [
+              "dataset"
+              "logs"
+              "result"
+              "pip_packages"
+              ".*\.egg-info"
+              ".*\.zip"
+            ])
+      );
+      src = lib.cleanSource ./.;
+    };
 
-    propagatedBuildInputs = with pkgs.python39Packages; [
+    propagatedBuildInputs = with python39Packages; [
       click
       gdown
       matplotlib
