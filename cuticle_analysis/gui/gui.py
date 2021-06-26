@@ -1,8 +1,11 @@
 
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # noqa
+import pygame
+
 import threading
 
 import click
-import pygame
 from pygame.locals import HIDDEN, DOUBLEBUF
 
 from cuticle_analysis.dataset import Dataset

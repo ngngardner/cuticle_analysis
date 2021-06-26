@@ -30,13 +30,8 @@ def download_dataset():
 
 @click.command()
 def unzip_dataset():
-    path = click.prompt(
-        "Enter dataset.zip filepath. (default=./dataset.zip)",
-        default=".",
-        type=str)
-
     print("Extracting dataset...")
-    zip_path = f"{path}/dataset.zip"
+    zip_path = f"./dataset.zip"
     folder_path = f"./dataset"
 
     try:
