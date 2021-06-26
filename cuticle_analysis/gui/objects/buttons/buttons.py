@@ -1,7 +1,9 @@
 
-import threading
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # noqa
+import pygame
 
-import pygame  # GUI Framework
+import threading
 
 
 class Buttons():

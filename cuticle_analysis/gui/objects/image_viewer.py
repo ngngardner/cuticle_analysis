@@ -1,7 +1,10 @@
 
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # noqa
+import pygame
+
 import os
 
-import pygame  # GUI Framework
 from PIL import Image as im  # Import library that reads image array
 
 from cuticle_analysis import const

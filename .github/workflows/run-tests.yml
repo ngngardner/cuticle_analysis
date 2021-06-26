@@ -1,22 +1,19 @@
-name: Run tests
-
+name: "Build"
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
-
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout github repo (+ download lfs dependencies)
-        uses: actions/checkout@v2
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+      - name: git checkout
+        uses: actions/checkout@v2.3.4
+      - name: install nix
+        uses: cachix/install-nix-action@v13
         with:
-          python-version: 3.8
-      - name: Build 
-        run: make build
-      - name: Run dataset setup
-        run: python . --dataset-init=1
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: build
+        run: nix-build --quiet
+      - name: download dataset and run tests
+        run: nix-shell --run "cuticle_analysis download-unzip && python tests/test_dataset.py"
