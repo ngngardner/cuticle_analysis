@@ -1,0 +1,20 @@
+name: "Build"
+on:
+  pull_request:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2.3.4
+      - name: install nix
+        uses: cachix/install-nix-action@v13
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: build
+        run: nix-build --quiet
+      - name: download dataset
+        run: cuticle_analysis download-unzip
+      - name: run tests
+        run: python tests/test_dataset.py
