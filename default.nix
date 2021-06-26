@@ -27,17 +27,4 @@ rec {
     doCheck = false;
     pythonImportsCheck = [ "cuticle_analysis" ];
   };
-
-  pythonLibs = pkgs.python39.buildEnv.override {
-    extraLibs = [ cuticle ];
-  };
-
-  devShell = pkgs.mkShell {
-    packages = [
-      pythonLibs
-      pkgs.python39Packages.autopep8
-      pkgs.python39Packages.pycodestyle
-      pkgs.python39Packages.pylint
-    ];
-  };
 }

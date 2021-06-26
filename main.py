@@ -1,2 +1,2 @@
-from cuticle_analysis.core import main
+from cuticle_analysis import main
 main()

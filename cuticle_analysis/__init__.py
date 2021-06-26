@@ -3,7 +3,7 @@ import logging
 
 from rich.logging import RichHandler
 
-from cuticle_analysis.core.cli import cli
+from .cli import cli
 
 FORMAT = "%(message)s"
 logging.basicConfig(

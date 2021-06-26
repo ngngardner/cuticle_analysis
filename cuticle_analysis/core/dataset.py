@@ -17,7 +17,7 @@ def download_unzip(ctx):
 
 @click.command()
 def download_dataset():
-    import gdown
+    import gdown # type: ignore
 
     print("Downloading dataset...")
     url = "https://drive.google.com/uc?id=1xABlWE790uWmT0mMxbDjn9KZlNUB6Y57"
