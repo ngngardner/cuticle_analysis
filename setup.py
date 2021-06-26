@@ -17,7 +17,13 @@ setup(
     author_email='ngardn10@students.kennesaw.edu',
     url='https://github.com/ngngardner/cuticle_analysis',
     license=license,
-    packages=["cuticle_analysis", "cuticle_analysis/core"],
+    packages=[
+        "cuticle_analysis",
+        "cuticle_analysis/core",
+        "cuticle_analysis/gui",
+        "cuticle_analysis/gui/objects",
+        "cuticle_analysis/gui/objects/buttons",
+    ],
     entry_points='''
         [console_scripts]
         cuticle_analysis=cuticle_analysis:main
