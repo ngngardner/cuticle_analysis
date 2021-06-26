@@ -14,7 +14,5 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: build
         run: nix-build --quiet
-      - name: download dataset
-        run: nix-shell --run "cuticle_analysis download-unzip"
-      - name: run tests
-        run: nix-shell --run "python tests/test_dataset.py"
+      - name: download dataset and run tests
+        run: nix-shell --run "cuticle_analysis download-unzip && python tests/test_dataset.py"
