@@ -1,0 +1,12 @@
+name: "Test"
+on:
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: cuticle_analysis download-unzip
+      - run: python tests/test_ataset.py
