@@ -9,10 +9,10 @@ from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 import cv2
-from labelme import utils
 from numpy.random import default_rng
 
 from . import const
+from .utils import shapes_to_label
 
 if not os.path.exists('./logs'):
     os.makedirs('./logs')
@@ -52,7 +52,7 @@ def get_label_names(img: np.ndarray, data: Dict) -> Tuple[np.ndarray, Dict]:
         else:
             label_value = len(label_name_to_value)
             label_name_to_value[label_name] = label_value
-    lbl, _ = utils.shapes_to_label(
+    lbl, _ = shapes_to_label(
         img.shape, data["shapes"], label_name_to_value
     )
 
@@ -89,15 +89,6 @@ class Dataset():
         rows = self.size[0]
         cols = self.size[1]
 
-        # for subimages dataset
-        self.subimages_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_img.npy'
-
-        # for images dataset
-        self.subimages_path = f'./dataset/{rows}_{cols}_img.npy'
-
-        # for both
-        self.labels_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_labels.npy'
-        self.ids_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_ids.npy'
         self.img_meta_path = f'./dataset/{const.DS_MAP[dataset_type]}/img_meta.npy'
 
         # load img ids and labels
@@ -105,12 +96,21 @@ class Dataset():
         logger.info('Loaded image metadata.')
 
         if dataset_type in const.SUBIMAGE_DATASETS:
+            self.subimages_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_img.npy'
+            self.sublabels_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_labels.npy'
+            self.subids_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_ids.npy'
+
             # load subimage dataset
             self._build_subimages(rebuild)
             logger.info(f'Loaded sub-image dataset of size {rows} by {cols}.')
             logger.info(
                 f'Total of {len(self.labels)} sub-images built from {len(np.unique(self.ids))} images.')
         elif dataset_type == const.DATASET:
+            self.images_path = f'./dataset/image/{rows}_{cols}_img.npy'
+            self.labels_path = f'./dataset/image/{rows}_{cols}_labels.npy'
+            self.ids_path = f'./dataset/image/{rows}_{cols}_ids.npy'
+
+            # load image dataset
             self._build_images(rebuild)
             logger.info(f'Loaded image dataset of size {rows} by {cols}.')
             logger.info(f'Total of {len(np.unique(self.ids))} images.')
@@ -172,8 +172,8 @@ class Dataset():
 
         try:
             self.subimages = np.load(self.subimages_path)
-            self.labels = np.load(self.labels_path)
-            self.ids = np.load(self.ids_path)
+            self.labels = np.load(self.sublabels_path)
+            self.ids = np.load(self.subids_path)
         except Exception as e:
             logger.debug(e)
 
@@ -184,8 +184,11 @@ class Dataset():
         """
             Builds the subimage dataset to store in .npy files.
         """
+        rows = self.size[0]
+        cols = self.size[1]
+
         logger.info(
-            f'Generating dataset of size {self.size[0]} by {self.size[1]}.')
+            f'Generating dataset of size {rows} by {cols}.')
 
         # sub image data and original ids
         sub_images = {}
@@ -200,9 +203,6 @@ class Dataset():
             files = glob.glob(f'./dataset/data/*.jpg')
 
         logger.info(f'Using {len(files)} images.')
-
-        rows = self.size[0]
-        cols = self.size[1]
 
         for file in files:
             # load image data based on avaiable jsons
@@ -310,8 +310,8 @@ class Dataset():
 
         # save subimage data and labels
         np.save(self.subimages_path, sub_images_arr)
-        np.save(self.labels_path, sub_labels_arr)
-        np.save(self.ids_path, sub_ids_arr)
+        np.save(self.sublabels_path, sub_labels_arr)
+        np.save(self.subids_path, sub_ids_arr)
 
         return sub_images_arr, sub_labels_arr, sub_ids_arr
 
@@ -322,8 +322,8 @@ class Dataset():
 
         try:
             self.images = np.load(self.images_path)
-            self.labels = np.load(self.labels_path)
-            self.ids = np.load(self.ids_path)
+            self.labels = np.load(self.sublabels_path)
+            self.ids = np.load(self.subids_path)
         except Exception as e:
             logger.debug(e)
 
@@ -331,7 +331,59 @@ class Dataset():
             self.images, self.labels, self.ids = self.build_images()
 
     def build_images(self):
-        pass
+        rows = self.size[0]
+        cols = self.size[1]
+
+        logger.info(
+            f'Generating dataset of size {self.size[0]} by {self.size[1]}.')
+
+        files = glob.glob(f'./dataset/data/*.jpg')
+
+        images = {}
+        ids = {}
+
+        for file in files:
+            try:
+                _id = int(re.findall('[0-9]+', file)[0])
+
+                img = cv2.imread(
+                    f'./dataset/data/{_id}.jpg')
+                if img is None:
+                    raise ValueError('Could not find image.')
+
+                img_label = self.get_label(_id)
+                if img_label not in images.keys():
+                    images[img_label] = []
+                    ids[img_label] = []
+
+                images[img_label].append(cv2.resize(img, (rows, cols)))
+                ids[img_label].append(_id)
+
+            except Exception as e:
+                logger.debug(f'Failed to open file {_id}.jpg: {e}')
+
+        images_arr = []
+        labels_arr = []
+        ids_arr = []
+        for k in images:
+            for image in images[k]:
+                images_arr.append(image)
+                labels_arr.append(k)
+            for _id in ids[k]:
+                ids_arr.append(_id)
+
+        assert len(images_arr) == len(labels_arr) == len(ids_arr)
+
+        images_arr = np.array(images_arr)
+        images_arr = np.array(labels_arr)
+        images_arr = np.array(ids_arr)
+
+        # save image data and labels
+        np.save(self.images_path, images_arr)
+        np.save(self.labels_path, labels_arr)
+        np.save(self.ids_path, ids_arr)
+
+        return images_arr, labels_arr, ids_arr
 
     def get_label(self, _id: int) -> int:
         """

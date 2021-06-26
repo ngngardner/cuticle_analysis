@@ -1,14 +1,24 @@
 
 import threading
 
+import click
 import pygame
 from pygame.locals import HIDDEN, DOUBLEBUF
 
 from cuticle_analysis.dataset import Dataset
-from GUI.objects.image_viewer import ImageViewer
-from GUI.objects.buttons.buttons import Buttons
-from GUI.objects.textbox import Textbox
-from GUI import const
+from .objects.image_viewer import ImageViewer
+from .objects.buttons.buttons import Buttons
+from .objects.textbox import Textbox
+from . import const
+
+
+@click.command()
+def application():
+    # Temporary check verifying that the window staus is open until user quits.
+    gui_thread = threading.Thread(target=start)
+    pygame.init()
+    gui_thread.start()
+    gui_thread.join()
 
 
 class Gui:
@@ -119,10 +129,3 @@ def start():
         pygame.display.update()
     next_bttn_listener.join()
     prev_bttn_listener.join()
-
-
-# Temporary check verifying that the window staus is open until user quits.
-gui_thread = threading.Thread(target=start)
-pygame.init()
-gui_thread.start()
-gui_thread.join()
