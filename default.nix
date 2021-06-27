@@ -3,10 +3,8 @@
 }:
 with pkgs;
 rec {
-  cuticle = python39Packages.buildPythonPackage {
-    pname = "cuticle_analysis";
-    version = "0.0.1";
-
+  cuticle = poetry2nix.mkPoetryApplication {
+    projectDir = ./.;
     src = lib.cleanSourceWith {
       filter = (path: type:
         ! (builtins.any
@@ -22,22 +20,6 @@ rec {
       );
       src = lib.cleanSource ./.;
     };
-
-    propagatedBuildInputs = with python39Packages; [
-      click
-      gdown
-      matplotlib
-      numpy
-      opencv3
-      openpyxl
-      pandas
-      pillow
-      pygame
-      rich
-      scikit-learn
-      scipy
-      tensorflow
-    ];
 
     doCheck = false;
     pythonImportsCheck = [ "cuticle_analysis" ];

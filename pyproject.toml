@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "cuticle_analysis"
+version = "0.1.0"
+description = "Project for analyzing ant head images."
+authors = ["Noah Gardner <ngngardner@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.10"
+click = "8.0.1"
+labelme = "4.5.7"
+numpy = "1.19.5"
+opencv-python = "4.5.1.48"
+openpyxl = "3.0.6"
+pandas = "1.2.1"
+Pillow = "8.2.0"
+pygame = ">=2.0.1"
+rich = "10.3.0"
+scikit-learn = "0.24.1"
+scipy = "1.6.2"
+tensorflow = ">=2.0.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+cuticle_analysis = 'cuticle_analysis:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
