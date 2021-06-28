@@ -3,7 +3,7 @@ import numpy as np
 
 from .cnn import CNN
 from .kviews import KViews
-from . import const
+from .. import const
 
 
 class EndToEnd():

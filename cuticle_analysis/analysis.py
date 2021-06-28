@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 from numpy.random import default_rng
 
-from .dataset import Dataset
+from .datasets import Dataset
 from . import const
 
 logger = logging.getLogger(__name__)

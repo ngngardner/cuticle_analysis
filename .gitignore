@@ -142,6 +142,7 @@ cuticle_analysis.egg-info
 .env
 .snakemake
 *.zip
+temp.py
 
 # generated
 logs

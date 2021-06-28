@@ -5,7 +5,7 @@ import numpy as np
 
 from cuticle_analysis.dataset import Dataset
 
-data = Dataset((16, 16))
+data = Dataset((16, 16), dataset_type='rough_smooth', rebuild=True)
 
 # convert human expert labels using majority voting
 label_cols = data.ant_data[['Jp', 'Becca', 'Katy']].mode(axis=1)[0]

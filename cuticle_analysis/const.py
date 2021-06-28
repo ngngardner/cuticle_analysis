@@ -11,6 +11,7 @@ INT_LABEL_MAP = {v: k for k, v in LABEL_MAP.items()}
 NUM_CLASSES = 2
 
 DATASET = 'dataset'
+DATASET_FULL = 'full'
 DATASET_BG = 'background'
 DATASET_RS = 'rough_smooth'
 DATASET_SI = 'subimage'

@@ -2,7 +2,7 @@
 import unittest
 from pathlib import Path
 
-from cuticle_analysis.dataset import Dataset
+from cuticle_analysis import datasets
 
 
 class TestDataset(unittest.TestCase):
@@ -11,53 +11,20 @@ class TestDataset(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.d = Dataset(
-            (16, 16), dataset_type='rough_smooth', rebuild=True, save=False)
+        cls.d = datasets.RoughSmoothSub((16, 16), rebuild=True)
 
     def test_datasets(self):
         'Test each dataset configuration.'
-        # subimages
-        Dataset(
-            (32, 32), dataset_type='rough_smooth', rebuild=True, save=False)
-        Dataset(
-            (32, 32), dataset_type='background', rebuild=True, save=False)
+        # sub
+        datasets.RoughSmoothSub((16, 16), rebuild=True)
 
-        # images
-        Dataset(
-            (128, 128), dataset_type='dataset', rebuild=True, save=False)
+        # full
+        datasets.RoughSmoothFull((16, 16), rebuild=True)
 
     def test_subimage_files(self):
         'Test that files are created when expected for subimage dataset.'
         # save files
-        d = Dataset(
-            (32, 32), dataset_type='rough_smooth', rebuild=True, save=True)
-        paths = [
-            Path(d.img_meta_path),
-            Path(d.subimages_path),
-            Path(d.sublabels_path),
-            Path(d.subids_path)
-        ]
-        for path in paths:
-            self.assertTrue(path.exists())
-            path.unlink()
-
-        # don't save files
-        d = Dataset(
-            (32, 32), dataset_type='rough_smooth', rebuild=True, save=False)
-        paths = [
-            Path(d.img_meta_path),
-            Path(d.subimages_path),
-            Path(d.sublabels_path),
-            Path(d.subids_path)
-        ]
-        for path in paths:
-            self.assertFalse(path.exists())
-
-    def test_image_files(self):
-        'Test that files are created when expected for subimage dataset.'
-        # save files
-        d = Dataset(
-            (128, 128), dataset_type='dataset', rebuild=True, save=True)
+        d = datasets.RoughSmoothSub((16, 16), rebuild=True, save=True)
         paths = [
             Path(d.img_meta_path),
             Path(d.images_path),
@@ -69,8 +36,32 @@ class TestDataset(unittest.TestCase):
             path.unlink()
 
         # don't save files
-        d = Dataset(
-            (128, 128), dataset_type='dataset', rebuild=True, save=False)
+        d = datasets.RoughSmoothSub((16, 16), rebuild=True, save=False)
+        paths = [
+            Path(d.img_meta_path),
+            Path(d.images_path),
+            Path(d.labels_path),
+            Path(d.ids_path)
+        ]
+        for path in paths:
+            self.assertFalse(path.exists())
+
+    def test_full_files(self):
+        'Test that files are created when expected for full dataset.'
+        # save files
+        d = datasets.RoughSmoothFull((128, 128), rebuild=True, save=True)
+        paths = [
+            Path(d.img_meta_path),
+            Path(d.images_path),
+            Path(d.labels_path),
+            Path(d.ids_path)
+        ]
+        for path in paths:
+            self.assertTrue(path.exists())
+            path.unlink()
+
+        # don't save files
+        d = datasets.RoughSmoothFull((128, 128), rebuild=True, save=False)
         paths = [
             Path(d.img_meta_path),
             Path(d.images_path),

@@ -5,11 +5,10 @@ from typing import List
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from tensorflow import keras
-from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .dataset import Dataset
+from ..datasets import Dataset
 
 
 class CNN():
@@ -41,11 +40,8 @@ class CNN():
             f'Model Type: {self.name}'
         ]
 
-    def train(self, epochs, test_size) -> None:
-        train_x, test_x, train_y, test_y = train_test_split(
-            self.data.subimages,
-            self.data.labels,
-            test_size=test_size)
+    def train(self, epochs: int, n: int) -> None:
+        train_x, train_y, test_x, test_y = self.data.stratified_split(n)
 
         self.model.compile(
             optimizer='adam',
@@ -60,29 +56,6 @@ class CNN():
             validation_data=(test_x, test_y),
             epochs=epochs
         )
-
-    def plot(self) -> None:
-        acc = self.history.history['accuracy']
-        val_acc = self.history.history['val_accuracy']
-
-        loss = self.history.history['loss']
-        val_loss = self.history.history['val_loss']
-
-        epochs_range = range(self.epochs)
-
-        plt.figure(figsize=(8, 8))
-        plt.subplot(1, 2, 1)
-        plt.plot(epochs_range, acc, label='Training Accuracy')
-        plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-        plt.legend(loc='lower right')
-        plt.title('Training and Validation Accuracy')
-
-        plt.subplot(1, 2, 2)
-        plt.plot(epochs_range, loss, label='Training Loss')
-        plt.plot(epochs_range, val_loss, label='Validation Loss')
-        plt.legend(loc='upper right')
-        plt.title('Training and Validation Loss')
-        plt.savefig('cnn_output.test.png')
 
     def save_weights(self) -> None:
         self.model.save(self.path)
