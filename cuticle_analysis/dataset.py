@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import re
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -69,7 +69,22 @@ class Dataset():
                  dataset_type: str = 'dataset',
                  excludes: list = None,
                  random_seed: int = None,
-                 rebuild: bool = False):
+                 rebuild: bool = False,
+                 save: bool = True):
+        """Interact with the original dataset to build custom datasets.
+
+        Args:
+            size (tuple): size of the output images in the dataset.
+            dataset_type (str, optional): [description]. Defaults to 'dataset'.
+            excludes (list, optional): [description]. Defaults to None.
+            random_seed (int, optional): [description]. Defaults to None.
+            rebuild (bool, optional): [description]. Defaults to False.
+            save (bool, optional): Whether to save the generated files for
+            faster builds in the future. Defaults to True.
+
+        Raises:
+            ValueError: Will fail to build on non-supported dataset type.
+        """
         self.rng = default_rng(seed=random_seed)
 
         assert dataset_type in const.DATASETS
@@ -89,10 +104,10 @@ class Dataset():
         rows = self.size[0]
         cols = self.size[1]
 
-        self.img_meta_path = f'./dataset/{const.DS_MAP[dataset_type]}/img_meta.npy'
+        self.img_meta_path = f'./dataset/img_meta.npy'
 
         # load img ids and labels
-        self._build_labels(rebuild)
+        self._build_labels(rebuild, save)
         logger.info('Loaded image metadata.')
 
         if dataset_type in const.SUBIMAGE_DATASETS:
@@ -101,17 +116,17 @@ class Dataset():
             self.subids_path = f'./dataset/{const.DS_MAP[dataset_type]}/{rows}_{cols}_ids.npy'
 
             # load subimage dataset
-            self._build_subimages(rebuild)
+            self._build_subimages(rebuild, save)
             logger.info(f'Loaded sub-image dataset of size {rows} by {cols}.')
             logger.info(
                 f'Total of {len(self.labels)} sub-images built from {len(np.unique(self.ids))} images.')
         elif dataset_type == const.DATASET:
-            self.images_path = f'./dataset/image/{rows}_{cols}_img.npy'
-            self.labels_path = f'./dataset/image/{rows}_{cols}_labels.npy'
-            self.ids_path = f'./dataset/image/{rows}_{cols}_ids.npy'
+            self.images_path = f'./dataset/{rows}_{cols}_img.npy'
+            self.labels_path = f'./dataset/{rows}_{cols}_labels.npy'
+            self.ids_path = f'./dataset/{rows}_{cols}_ids.npy'
 
             # load image dataset
-            self._build_images(rebuild)
+            self._build_images(rebuild, save)
             logger.info(f'Loaded image dataset of size {rows} by {cols}.')
             logger.info(f'Total of {len(np.unique(self.ids))} images.')
         else:
@@ -122,20 +137,36 @@ class Dataset():
         for i in range(len(uniques[0])):
             logger.info(f'\t{uniques[0][i]}: {uniques[1][i]}')
 
-    def _build_labels(self, rebuild: bool):
+    def _build_labels(self, rebuild: bool, save: bool):
+        """Helper for Dataset.build_labels, it will use the rebuild variable to
+        force a rebuild to new files. It will also rebuild on failure-to-load
+        the expected files.
+
+        Args:
+            rebuild (bool): Force rebuilding the dataset.
+            save (bool): Save the generated files.
+
+        Updates:
+            img_meta: img metadata used for getting sample info (label, etc.).
+        """
         if rebuild:
-            self.build_labels()
+            self.build_labels(save)
 
         try:
             self.img_meta = np.load(self.img_meta_path)
         except Exception as e:
             logger.debug(e)
             # build on failure-to-load
-            self.img_meta = self.build_labels()
+            self.img_meta = self.build_labels(save)
 
-    def build_labels(self) -> np.ndarray:
-        """
-            Builds the img_meta.npy file based on data from the labels.xlsx file.
+    def build_labels(self, save: bool) -> np.ndarray:
+        """Builds the img_meta.npy file based on data from the labels.xlsx file.
+
+        Args:
+            save (bool): Save the generated files.
+
+        Returns:
+            np.ndarray: Image metadata scraped from original dataset.
         """
         logger.info(f'Generating labels.')
 
@@ -161,13 +192,28 @@ class Dataset():
 
         # save image ids and labels
         res = np.stack([img_ids.astype(int), img_labels.astype(int)])
-        np.save(self.img_meta_path, res)
+
+        if save:
+            np.save(self.img_meta_path, res)
 
         return res
 
-    def _build_subimages(self, rebuild: bool):
+    def _build_subimages(self, rebuild: bool, save: bool):
+        """Helper for Dataset.build_subimages, it will use the rebuild variable to
+        force a rebuild to new files. It will also rebuild on failure-to-load
+        the expected files.
+
+        Args:
+            rebuild (bool): Force rebuilding the dataset.
+            save (bool): Save the generated files.
+
+        Updates:
+            subimages: Array of generated subimages.
+            labels: Ground-truth label of each subimage.
+            ids: Original sample id of each subimage.
+        """
         if rebuild:
-            self.subimages, self.labels, self.ids = self.build_subimages()
+            self.subimages, self.labels, self.ids = self.build_subimages(save)
             return
 
         try:
@@ -178,11 +224,18 @@ class Dataset():
             logger.debug(e)
 
             # build on failure-to-load
-            self.subimages, self.labels, self.ids = self.build_subimages()
+            self.subimages, self.labels, self.ids = self.build_subimages(save)
 
-    def build_subimages(self):
-        """
-            Builds the subimage dataset to store in .npy files.
+    def build_subimages(self, save: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Builds the subimage dataset.
+
+        Args:
+            save (bool): Save the generated files.
+
+        Returns:
+            subimages (np.ndarray): Array of generated subimages.
+            labels (np.ndarray): Ground-truth label of each subimage.
+            ids (np.ndarray): Original sample id of each subimage.
         """
         rows = self.size[0]
         cols = self.size[1]
@@ -309,15 +362,29 @@ class Dataset():
         assert len(sub_images_arr) == len(sub_labels_arr) == len(sub_ids_arr)
 
         # save subimage data and labels
-        np.save(self.subimages_path, sub_images_arr)
-        np.save(self.sublabels_path, sub_labels_arr)
-        np.save(self.subids_path, sub_ids_arr)
+        if save:
+            np.save(self.subimages_path, sub_images_arr)
+            np.save(self.sublabels_path, sub_labels_arr)
+            np.save(self.subids_path, sub_ids_arr)
 
         return sub_images_arr, sub_labels_arr, sub_ids_arr
 
-    def _build_images(self, rebuild: bool):
+    def _build_images(self, rebuild: bool, save: bool):
+        """Helper for Dataset.build_images, it will use the rebuild variable to
+        force a rebuild to new files. It will also rebuild on failure-to-load
+        the expected files.
+
+        Args:
+            rebuild (bool): Force rebuilding the dataset.
+            save (bool): Save the generated files.
+
+        Updates:
+            images: Array of generated images.
+            labels: Ground-truth label of each image.
+            ids: Original sample id of each image.
+        """
         if rebuild:
-            self.images, self.labels, self.ids = self.build_images()
+            self.images, self.labels, self.ids = self.build_images(save)
             return
 
         try:
@@ -328,9 +395,19 @@ class Dataset():
             logger.debug(e)
 
             # build on failure-to-load
-            self.images, self.labels, self.ids = self.build_images()
+            self.images, self.labels, self.ids = self.build_images(save)
 
-    def build_images(self):
+    def build_images(self, save: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Builds the image dataset.
+
+        Args:
+            save (bool): Save the generated files.
+
+        Returns:
+            subimages (np.ndarray): Array of generated images.
+            labels (np.ndarray): Ground-truth label of each image.
+            ids (np.ndarray): Original sample id of each image.
+        """
         rows = self.size[0]
         cols = self.size[1]
 
@@ -375,19 +452,28 @@ class Dataset():
         assert len(images_arr) == len(labels_arr) == len(ids_arr)
 
         images_arr = np.array(images_arr)
-        images_arr = np.array(labels_arr)
-        images_arr = np.array(ids_arr)
+        labels_arr = np.array(labels_arr)
+        ids_arr = np.array(ids_arr)
 
         # save image data and labels
-        np.save(self.images_path, images_arr)
-        np.save(self.labels_path, labels_arr)
-        np.save(self.ids_path, ids_arr)
+        if save:
+            np.save(self.images_path, images_arr)
+            np.save(self.labels_path, labels_arr)
+            np.save(self.ids_path, ids_arr)
 
         return images_arr, labels_arr, ids_arr
 
     def get_label(self, _id: int) -> int:
-        """
-            Given an image id, return the label.
+        """Given an image ID, return the label.
+
+        Args:
+            _id (int): ID of the original sample
+
+        Raises:
+            ValueError: NA label for iamge
+
+        Returns:
+            int: Original sample label
         """
         idx = np.where(self.img_meta[0] == _id)
         label = self.img_meta[1][idx]
@@ -406,14 +492,13 @@ class Dataset():
         return const.INT_RS_LABEL_MAP[self.get_label(_id)]
 
     def get_image(self, _id: int) -> np.ndarray:
-        """
-        Get image by ID.
+        """Get image by ID.
 
         Args:
-            _id (int): ID of the image.
+            _id (int): ID of the sample.
 
         Returns:
-            np.ndarray: Image as cv2 image object (numpy array).
+            img (np.ndarray): Image as cv2 image object (numpy array).
         """
         path = f'./dataset/data/{_id}.jpg'
         img = cv2.imread(path)
@@ -424,16 +509,29 @@ class Dataset():
         return img
 
     def is_included(self, _id: int) -> bool:
-        """
-            Given an image id, return if the image is included from the dataset.
+        """Given an image id, return if the image is included from the dataset.
+
+        Args:
+            _id (int): ID of the sample.
+
+        Returns:
+            bool: True if included, else false
         """
         if _id in self.ids:
             return True
         return False
 
-    def stratified_split(self, n: int):
-        """
-            [n]: number of samples per class
+    def stratified_split(self, n: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Stratified split with $n samples per class.
+
+        Args:
+            n (int): Number of samples per class
+
+        Returns:
+            train_x: Training images
+            train_y: Training labels
+            test_x: Test images
+            test_y: Training labels
         """
         uniques = np.unique(self.labels, return_counts=True)
 
@@ -457,7 +555,15 @@ class Dataset():
 
         return self.train_x, self.train_y, self.test_x, self.test_y
 
-    def get_ant_info(self, _id: int):
+    def get_ant_info(self, _id: int) -> List[str]:
+        """Get ant species info from original dataset.
+
+        Args:
+            _id (int): ID of the sample.
+
+        Returns:
+            List[str]: List of ant species info.
+        """
         row = self.ant_data.loc[self.ant_data['Photo_number'] == _id]
 
         res = []

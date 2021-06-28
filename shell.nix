@@ -5,11 +5,15 @@ let
     extraLibs = [ (import ./default.nix { inherit pkgs; }).cuticle ];
   };
 in
+with pkgs.python39Packages;
 pkgs.mkShell {
   packages = [
     pythonLibs
-    pkgs.python39Packages.autopep8
-    pkgs.python39Packages.pycodestyle
-    pkgs.python39Packages.pylint
+
+    # dev
+    autopep8
+    pycodestyle
+    pylint
+    pytest
   ];
 }

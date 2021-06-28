@@ -16,4 +16,4 @@ jobs:
       - name: build
         run: nix-build --quiet
       - name: download dataset and run tests
-        run: nix-shell --run "cuticle_analysis download-unzip && python tests/test_dataset.py"
+        run: nix-shell --run "cuticle_analysis download-unzip && pytest"
