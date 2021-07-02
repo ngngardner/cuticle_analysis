@@ -8,7 +8,7 @@ import threading
 import click
 from pygame.locals import HIDDEN, DOUBLEBUF
 
-from cuticle_analysis.dataset import Dataset
+from cuticle_analysis.datasets import Dataset
 from .objects.image_viewer import ImageViewer
 from .objects.buttons.buttons import Buttons
 from .objects.textbox import Textbox

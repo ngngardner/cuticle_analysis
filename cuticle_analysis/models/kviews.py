@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.metrics import rand_score, adjusted_rand_score, cluster
 
-from .dataset import Dataset
+from ..datasets import Dataset
 
 logger = logging.getLogger(__name__)
 
