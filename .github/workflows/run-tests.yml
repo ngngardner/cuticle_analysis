@@ -19,6 +19,8 @@ jobs:
         run: nix-shell --run "cuticle_analysis download-unzip"
       - name: run tests
         run: nix-shell --run "coverage run --source=cuticle_analysis --module pytest --verbose tests"
+      - name: coverage report
+        run: nix-shell --run "coverage xml"
       - name: upload coverage to codecov
         uses: codecov/codecov-action@v1
         with:
