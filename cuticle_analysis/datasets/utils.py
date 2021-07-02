@@ -74,7 +74,33 @@ def convert_labels(label: pd.Series) -> pd.Series:
     Returns:
         pd.Series: [description]
     """
-    raise NotImplementedError
+    label = label.replace(
+        to_replace=r'^[r][d].*', value=0, regex=True)
+    label = label.replace(
+        to_replace=r'^[r][n].*', value=1, regex=True)
+    label = label.replace(
+        to_replace=r'^[r][r].*', value=2, regex=True)
+    label = label.replace(
+        to_replace=r'^[r][t].*', value=3, regex=True)
+    label = label.replace(
+        to_replace=r'^[s][g].*', value=4, regex=True)
+    label = label.replace(
+        to_replace=r'^[s][s].*', value=5, regex=True)
+
+    # remove the rest
+    label = label.replace(
+        to_replace=r'^[^0-5].*', value=np.nan, regex=True)
+    label = label.replace(
+        to_replace=r'1e', value=np.nan, regex=True)
+
+    # convert to dataframe and filter by existing label
+    label = label.to_frame('class')
+    # label = label.loc[label['class'].isin([0, 1])]
+
+    # increment to start index from 1 (images start from 1.jpg)
+    label.index += 1
+
+    return label
 
 
 def convert_labels_rs(label: pd.Series) -> pd.Series:
@@ -94,7 +120,9 @@ def convert_labels_rs(label: pd.Series) -> pd.Series:
 
     # remove the rest
     label = label.replace(
-        to_replace=r'^[^rs].*', value=np.nan, regex=True)
+        to_replace=r'^[^0-1].*', value=np.nan, regex=True)
+    label = label.replace(
+        to_replace=r'1e', value=np.nan, regex=True)
 
     # convert to dataframe and filter by existing label
     label = label.to_frame('class')

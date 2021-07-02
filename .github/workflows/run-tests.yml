@@ -15,5 +15,12 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: build
         run: nix-build --quiet
-      - name: download dataset and run tests
-        run: nix-shell --run "cuticle_analysis download-unzip && pytest"
+      - name: download dataset
+        run: nix-shell --run "cuticle_analysis download-unzip"
+      - name: run tests
+        run: nix-shell --run "coverage run --source=cuticle_analysis --module
+        pytest --verbose tests"
+      - name: upload coverage to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true

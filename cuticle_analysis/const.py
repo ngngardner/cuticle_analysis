@@ -1,3 +1,8 @@
+DATASET = 'dataset'
+DATASET_ALL = 'all'
+DATASET_BG = 'background'
+DATASET_RS = 'rough_smooth'
+
 LABEL_MAP = {
     '_background_': 0,
     'antenna_base': 1,
@@ -5,20 +10,6 @@ LABEL_MAP = {
     'cuticle_extra': 3,
     'eye': 4
 }
-
-INT_LABEL_MAP = {v: k for k, v in LABEL_MAP.items()}
-
-NUM_CLASSES = 2
-
-DATASET = 'dataset'
-DATASET_FULL = 'full'
-DATASET_BG = 'background'
-DATASET_RS = 'rough_smooth'
-DATASET_SI = 'subimage'
-
-# collections of dataset types
-DATASETS = [DATASET, DATASET_BG, DATASET_RS, DATASET_SI]
-SUBIMAGE_DATASETS = [DATASET_BG, DATASET_RS, DATASET_SI]
 
 DS_MAP = {
     DATASET_BG: 'bg',

@@ -15,5 +15,6 @@ pkgs.mkShell {
     pycodestyle
     pylint
     pytest
+    coverage
   ];
 }

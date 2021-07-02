@@ -57,10 +57,10 @@ class Dataset():
         self.ant_data = pd.read_excel(
             f'./dataset/labels.xlsx', header=0)
 
-        self.img_meta_path = f'./dataset/{self.name}_{self.d_type}_img_meta.npy'
-        self.images_path = f'./dataset/{self.name}_{self.d_type}_images.npy'
-        self.labels_path = f'./dataset/{self.name}_{self.d_type}_labels.npy'
-        self.ids_path = f'./dataset/{self.name}_{self.d_type}_ids.npy'
+        self.img_meta_path = f'./dataset/{self.name}_{self.d_type}_{rows}_{cols}_img_meta.npy'
+        self.images_path = f'./dataset/{self.name}_{self.d_type}_{rows}_{cols}_images.npy'
+        self.labels_path = f'./dataset/{self.name}_{self.d_type}_{rows}_{cols}_labels.npy'
+        self.ids_path = f'./dataset/{self.name}_{self.d_type}_{rows}_{cols}_ids.npy'
 
         # load img ids and labels
         self._build_labels(rebuild, save)
@@ -114,7 +114,7 @@ class Dataset():
         label_cols = self.ant_data[['Jp', 'Becca', 'Katy']]
         if self.d_type == const.DATASET_RS:
             label = utils.convert_labels_rs(label_cols.mode(axis=1)[0])
-        else:
+        elif self.d_type == const.DATASET_ALL:
             label = utils.convert_labels(label_cols.mode(axis=1)[0])
 
         label['class'] = label['class'] + 1
