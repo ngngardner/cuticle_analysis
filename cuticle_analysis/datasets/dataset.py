@@ -23,7 +23,7 @@ class Dataset():
                  size: tuple,
                  name: str = "",
                  d_type: str = const.DATASET,
-                 excludes: list = [],
+                 excludes: list = None,
                  random_seed: int = None,
                  rebuild: bool = False,
                  save: bool = False):
@@ -199,17 +199,6 @@ class Dataset():
                 raise ValueError(
                     f'Class of ID[{_id}] is NA or not considered in this version.')
 
-    def preprocess(self, img: np.ndarray) -> np.ndarray:
-        """Apply preprocessing step to the image
-
-        Args:
-            img (np.ndarray): Orginal image.
-
-        Returns:
-            np.ndarray: Updated image with preprocessing.
-        """
-        return img
-
     def get_image(self, _id: int) -> np.ndarray:
         """Get image by ID.
 
@@ -224,17 +213,10 @@ class Dataset():
 
         if img is None:
             msg = f'Failed to open image {path}'
-            logger.debug(msg)
+            logger.error(msg)
             raise ValueError(msg)
 
-        try:
-            res = self.preprocess(img)
-        except Exception as e:
-            msg = f'Failed to preprocess image'
-            logger.debug(f'{msg}: {e}')
-            raise e
-
-        return res
+        return img
 
     def is_included(self, _id: int) -> bool:
         """Given an image id, return if the image is included from the dataset.
@@ -274,7 +256,7 @@ class Dataset():
 
         return res
 
-    def stratified_split(self, n: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def stratified_split(self, n: int) -> Tuple[np.ndarray, np.ndarray]:
         """Stratified split with $n samples per class.
 
         Args:
@@ -306,4 +288,38 @@ class Dataset():
 
         assert len(self.train_y) + len(self.test_y) == len(self.labels)
 
-        return self.train_x, self.train_y, self.test_x, self.test_y
+        return self.train_x, self.train_y
+
+    def build_validation_set(self, split: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
+        try:
+            # see if test_y exists
+            self.train_y
+        except Exception as e:
+            msg = "Test samples have yet to be made."
+            logger.error(msg)
+            raise e
+
+        val_idxs = self.rng.choice(
+            np.arange(len(self.test_y)),
+            size=int(split*len(self.test_y)),
+            replace=False
+        )
+
+        test_idxs = np.array([idx for idx in range(
+            len(self.test_y)) if idx not in val_idxs])
+
+        self.test_x = self.test_x[(test_idxs)]
+        self.test_y = self.test_y[(test_idxs)]
+        self.val_x = self.test_x[(val_idxs)]
+        self.val_y = self.test_y[(val_idxs)]
+
+        return self.val_x, self.val_y
+
+    def train_set(self) -> Tuple[np.ndarray, np.ndarray]:
+        return self.train_x, self.train_y
+
+    def test_set(self) -> Tuple[np.ndarray, np.ndarray]:
+        return self.test_x, self.test_y
+
+    def val_set(self) -> Tuple[np.ndarray, np.ndarray]:
+        return self.val_x, self.val_y

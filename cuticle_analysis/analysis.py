@@ -1,8 +1,8 @@
 
 import logging
 
-import numpy as np
 import cv2
+import numpy as np
 from numpy.random import default_rng
 
 from .datasets import Dataset
