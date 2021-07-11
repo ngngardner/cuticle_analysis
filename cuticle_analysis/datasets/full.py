@@ -2,10 +2,10 @@
 import re
 import glob
 import logging
-from typing import Tuple
+from typing import Tuple, List
 
-import numpy as np
 import cv2
+import numpy as np
 
 from .dataset import Dataset
 
@@ -32,6 +32,18 @@ class FullDataset(Dataset):
                          random_seed=random_seed,
                          rebuild=rebuild,
                          save=save)
+
+    def preprocess(self, img: np.ndarray) -> List[np.ndarray]:
+        """Apply preprocessing step to the image
+
+        Args:
+            img (np.ndarray): Orginal image.
+
+        Returns:
+            np.ndarray: Updated image with preprocessing, using a list to allow
+            for multiple images to be output by preprocessing.
+        """
+        return [img]
 
     def build_images(self, save: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Builds the image dataset.
@@ -64,8 +76,10 @@ class FullDataset(Dataset):
                     images[img_label] = []
                     ids[img_label] = []
 
-                images[img_label].append(cv2.resize(img, (rows, cols)))
-                ids[img_label].append(_id)
+                p_imgs = self.preprocess(img)
+                for p_img in p_imgs:
+                    images[img_label].append(cv2.resize(p_img, (rows, cols)))
+                    ids[img_label].append(_id)
 
             except Exception as e:
                 logger.debug(f'Failed to open file {_id}.jpg: {e}')

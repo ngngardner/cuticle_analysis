@@ -3,10 +3,10 @@ import re
 import glob
 import json
 import logging
-from typing import Tuple
+from typing import Tuple, List
 
-import numpy as np
 import cv2
+import numpy as np
 
 from .dataset import Dataset
 from .utils import get_label_names
@@ -35,6 +35,18 @@ class SubDataset(Dataset):
                          random_seed=random_seed,
                          rebuild=rebuild,
                          save=save)
+
+    def preprocess(self, img: np.ndarray) -> List[np.ndarray]:
+        """Apply preprocessing step to the image
+
+        Args:
+            img (np.ndarray): Orginal image.
+
+        Returns:
+            np.ndarray: Updated image with preprocessing, using a list to allow
+            for multiple images to be output by preprocessing.
+        """
+        return [img]
 
     def build_images(self, save: bool) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Builds the subimage dataset.
@@ -75,6 +87,9 @@ class SubDataset(Dataset):
                 img_label_name = self.get_label_name(_id)
                 lbl, label_names = get_label_names(img, data)
 
+                # preprocessing returns a list of images to use
+                p_imgs = self.preprocess(img)
+
                 # add labels from label_names to the running sub_images data structures
                 if label_names != list(sub_images.keys()):
                     for k in label_names:
@@ -96,27 +111,29 @@ class SubDataset(Dataset):
                             # label of the subimage (background, etc...)
                             sub_label = uniques[0]
 
-                            if self.d_type == const.DATASET_BG:
-                                # only add background if there are less bg samples
-                                # than cuticle
-                                if label_names[sub_label] == '_background_':
-                                    if len(sub_images['_background_']) \
-                                            < len(sub_images['cuticle']):
+                            for p_img in p_imgs:
+                                if self.d_type == const.DATASET_BG:
+                                    # only add background if there are less bg samples
+                                    # than cuticle
+                                    if label_names[sub_label] == '_background_':
+                                        if len(sub_images['_background_']) \
+                                                < len(sub_images['cuticle']):
+                                            sub_images[label_names[sub_label]].append(
+                                                p_img[x:x+rows, y:y+cols])
+                                            sub_ids[label_names[sub_label]].append(
+                                                _id)
+                                    else:
                                         sub_images[label_names[sub_label]].append(
-                                            img[x:x+rows, y:y+cols])
+                                            p_img[x:x+rows, y:y+cols])
                                         sub_ids[label_names[sub_label]].append(
                                             _id)
-                                else:
-                                    sub_images[label_names[sub_label]].append(
-                                        img[x:x+rows, y:y+cols])
-                                    sub_ids[label_names[sub_label]].append(_id)
 
-                            elif self.d_type == const.DATASET_RS:
-                                # there is only background and cuticle in
-                                # rs_dataset, ignore background
-                                if label_names[sub_label] == 'cuticle':
+                                elif (self.d_type == const.DATASET_RS
+                                        and label_names[sub_label] == 'cuticle'):
+                                    # there is only background and cuticle in
+                                    # rs_dataset, ignore background
                                     sub_images[img_label_name].append(
-                                        img[x:x+rows, y:y+cols])
+                                        p_img[x:x+rows, y:y+cols])
                                     sub_ids[img_label_name].append(_id)
 
             except Exception as e:

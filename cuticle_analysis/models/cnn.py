@@ -1,12 +1,11 @@
 
 
-from typing import List
+from typing import List, Tuple
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from tensorflow import keras
 import numpy as np
-import matplotlib.pyplot as plt
 
 from ..datasets import Dataset
 
@@ -41,7 +40,8 @@ class CNN():
         ]
 
     def train(self, epochs: int, n: int) -> None:
-        train_x, train_y, test_x, test_y = self.data.stratified_split(n)
+        train_x, train_y = self.data.stratified_split(n)
+        val_x, val_y = self.data.build_validation_set()
 
         self.model.compile(
             optimizer='adam',
@@ -53,7 +53,7 @@ class CNN():
 
         self.history = self.model.fit(
             train_x, train_y,
-            validation_data=(test_x, test_y),
+            validation_data=(val_x, val_y),
             epochs=epochs
         )
 
@@ -67,3 +67,8 @@ class CNN():
         pred = self.model.predict(image)
         pred = np.argmax(pred, axis=1)
         return pred
+
+    def evaluate(self) -> Tuple[float, float]:
+        test_x, test_y = self.data.test_set()
+        loss, acc = self.model.evaluate(test_x, test_y, batch_size=128)
+        return loss, acc
